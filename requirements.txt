@@ -1,0 +1,13 @@
+# Environment and Utilities
+python-dotenv
+
+# Langchain and Core components
+langchain
+faiss-cpu
+streamlit
+
+# Dcoument parsing
+pypdf
+
+# Local package (Information Retreival App)
+-e .
