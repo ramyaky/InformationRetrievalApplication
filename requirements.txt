@@ -1,10 +1,18 @@
-# Environment and Utilities
+# Core Dependecies
 python-dotenv
+streamlit
 
 # Langchain and Core components
 langchain
+langchain-huggingface
+langchain-core
+
+# Embeddings and models
+sentence-transformers
+huggingface-hub
+
+#Vector Store
 faiss-cpu
-streamlit
 
 # Dcoument parsing
 pypdf
