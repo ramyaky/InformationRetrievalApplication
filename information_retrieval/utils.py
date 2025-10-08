@@ -3,6 +3,7 @@ from sentence_transformers import SentenceTransformer
 from pypdf import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
 from pathlib import Path
 import os
 
@@ -50,3 +51,14 @@ def get_embedding_model():
     )
 
     return embeddings
+
+
+#
+# Fetches embedding model and creates vector store.
+# Uses embeddings to convert extracted text chunks into dense vectors.
+#
+def get_vector_store(extracted_chunks):
+    embeddings = get_embedding_model()
+    vector_store = FAISS(extract_text_chunks, embeddings)
+
+    return vector_store
