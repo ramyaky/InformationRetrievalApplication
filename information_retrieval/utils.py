@@ -59,6 +59,7 @@ def get_embedding_model():
 #
 def get_vector_store(extracted_chunks):
     embeddings = get_embedding_model()
-    vector_store = FAISS(extract_text_chunks, embeddings)
+    # Creates FAISS vector store from text chunks
+    vector_store = FAISS.from_texts(extracted_chunks, embeddings)
 
     return vector_store
