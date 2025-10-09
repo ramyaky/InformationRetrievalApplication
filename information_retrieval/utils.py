@@ -4,29 +4,45 @@ from pypdf import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
+from langchain.schema import Document
 from pathlib import Path
 import os
 
 
 #
-# Iterates each PDF file and extract text from it. Returns the consolidated extracted text.
+# Iterates each PDF file and extract text from it. 
+# Creates a Document object using both extracted text and some metadata. 
+# Return a list of Document objects.
 #
-def extract_pdf_text(pdf_documents):
-    extracted_text = ""
+def extract_pdf_to_documents(pdf_documents):
+    all_documents = []
     for pdf in pdf_documents:
         pdf_reader = PdfReader(pdf)
-        for page in pdf_reader.pages:
-            extracted_text += page.extract_text()
-    
-    return extracted_text
+        for page_num, page in enumerate(pdf_reader.pages, start=1):
+            text = page.extract_text()  # extracts text out of pdf. You can just concat this string to use text chunking instead of document chunking.
+            if text:
+                all_documents.append(Document(
+                    page_content=text,
+                    metadata={"page": page_num, "source": pdf.name}
+                ))
+    return all_documents
 
 #
 # Splits the text into chunks of size 1000 characters with a overlap of 20 characters.
 #
-def extract_text_chunks(extracted_text):
+def chunk_text(extracted_text):
     splitter = RecursiveCharacterTextSplitter(chunk_size = 1000, chunk_overlap=20)
-    chunks = splitter.split_text(extracted_text)
-    return chunks
+    text_chunks = splitter.split_text(extracted_text)
+    return text_chunks
+
+#
+# Splits the documents into chunks of size 1000 characters with a overlap of 200 characters.
+#
+def chunk_documents(documents):
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    document_chunks = splitter.split_documents(documents)
+
+    return document_chunks
 
 #
 # Function to load local/already downloaded embeddinggemma-300m model. 
@@ -60,6 +76,6 @@ def get_embedding_model():
 def get_vector_store(extracted_chunks):
     embeddings = get_embedding_model()
     # Creates FAISS vector store from text chunks
-    vector_store = FAISS.from_texts(extracted_chunks, embeddings)
-
+    vector_store = FAISS.from_documents(extracted_chunks, embeddings)
+    vector_store.save_local("indexes/sample_index")
     return vector_store

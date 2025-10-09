@@ -1,6 +1,9 @@
 # Hugging Face model cache
 models/
 
+# Vectore store indexes
+indexes/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

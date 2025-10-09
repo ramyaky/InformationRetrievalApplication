@@ -1,6 +1,6 @@
 import streamlit as st
-from information_retrieval.utils import extract_pdf_text, extract_text_chunks
-from information_retrieval.utils import get_embedding_model, get_vector_store
+from information_retrieval.utils import chunk_documents, extract_pdf_to_documents
+from information_retrieval.utils import get_vector_store
 
 
 def main():
@@ -15,8 +15,9 @@ def main():
         
         if st.button("Submit"):
             with st.spinner("Processing Files..."):
-                extracted_text = extract_pdf_text(uploaded_file)
-                vector_store = get_vector_store(extracted_text)
+                extracted_text = extract_pdf_to_documents(uploaded_file)
+                extracted_chunks = chunk_documents(extracted_text)
+                vector_store = get_vector_store(extracted_chunks)
                 st.success("Done")
     
     st.write(extracted_text)
