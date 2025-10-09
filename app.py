@@ -1,9 +1,19 @@
 import streamlit as st
 from information_retrieval.utils import chunk_documents, extract_pdf_to_documents
 from information_retrieval.utils import get_vector_store
+from information_retrieval.log_config import setup_logging
 
 
 def main():
+
+    if "logger_initialized" not in st.session_state:
+        logger = setup_logging()
+        st.session_state.logger_initialized = True
+        logger.info("Application started")
+    else:
+        import logging
+        logger = logging.getLogger("InformationRetrievalApp")
+    
     st.set_page_config("Information Retrieval App")
     st.header("Information Retrieval Application")
 

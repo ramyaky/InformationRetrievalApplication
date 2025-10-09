@@ -6,9 +6,11 @@ from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.schema import Document
 from pathlib import Path
+import logging
 import os
 
 
+logger = logging.getLogger("InformationRetrievalApp")
 #
 # Iterates each PDF file and extract text from it. 
 # Creates a Document object using both extracted text and some metadata. 
@@ -17,8 +19,10 @@ import os
 def extract_pdf_to_documents(pdf_documents):
     all_documents = []
     for pdf in pdf_documents:
+        logger.debug(f"Processing PDF: {pdf.name}")
         pdf_reader = PdfReader(pdf)
         for page_num, page in enumerate(pdf_reader.pages, start=1):
+            logger.debug(f"Extracting text from Page {page_num}")
             text = page.extract_text()  # extracts text out of pdf. You can just concat this string to use text chunking instead of document chunking.
             if text:
                 all_documents.append(Document(
@@ -32,6 +36,7 @@ def extract_pdf_to_documents(pdf_documents):
 #
 def chunk_text(extracted_text):
     splitter = RecursiveCharacterTextSplitter(chunk_size = 1000, chunk_overlap=20)
+    logger.debug(f"Performing text chunking with chunk size {splitter._chunk_size} and chunk overlap {splitter._chunk_overlap}")
     text_chunks = splitter.split_text(extracted_text)
     return text_chunks
 
@@ -40,6 +45,7 @@ def chunk_text(extracted_text):
 #
 def chunk_documents(documents):
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    logger.debug(f"Performing Document chunking with chunk size {splitter._chunk_size} and chunk overlap {splitter._chunk_overlap}")
     document_chunks = splitter.split_documents(documents)
 
     return document_chunks
@@ -53,11 +59,13 @@ def get_embedding_model():
     LOCAL_MODEL_PATH = Path("./models/google/embeddinggemma-300m")
 
     if LOCAL_MODEL_PATH.exists() and any(LOCAL_MODEL_PATH.iterdir()):
+        logging.info(f"Loading Gemma Ebedding from Local Cache...")
         print("Loading Gemma Ebedding from Local Cache...")
         model_path = str(LOCAL_MODEL_PATH)
     else:
         if not HF_TOKEN:
             raise ValueError("HuggingFace Token required to download gated model..")
+        logging.info(f"Local model not found, downloading from HuggingFace  Hub..")       
         print("Local model not found, downloading from HuggingFace  Hub...")
         model_path = "google/embeddinggemma-300m"
     
@@ -65,7 +73,7 @@ def get_embedding_model():
         model_name=model_path,
         model_kwargs={"use_auth_token": HF_TOKEN}  #token ignored if local model exists.
     )
-
+    logging.info(f"Successfully loaded embedding model")
     return embeddings
 
 
@@ -76,6 +84,9 @@ def get_embedding_model():
 def get_vector_store(extracted_chunks):
     embeddings = get_embedding_model()
     # Creates FAISS vector store from text chunks
+    logger.debug(f"Converting chunks to embedding vectors")
     vector_store = FAISS.from_documents(extracted_chunks, embeddings)
+    logger.debug(f"Saving vector store index locally under indexes/ folder")
     vector_store.save_local("indexes/sample_index")
+    logger.debug(f"Successfully saved the vector store index.")
     return vector_store

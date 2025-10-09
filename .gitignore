@@ -1,6 +1,9 @@
 # Hugging Face model cache
 models/
 
+#Log files
+logs/
+
 # Vectore store indexes
 indexes/
 
