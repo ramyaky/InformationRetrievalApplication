@@ -3,7 +3,10 @@ from sentence_transformers import SentenceTransformer
 from pypdf import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+from langchain_community.chat_models import ChatOllama
 from langchain_community.vectorstores import FAISS
+from langchain.memory import ConversationBufferMemory
+from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
 from langchain.schema import Document
 from pathlib import Path
 import logging
@@ -65,6 +68,7 @@ def get_embedding_model():
     else:
         if not HF_TOKEN:
             raise ValueError("HuggingFace Token required to download gated model..")
+        
         logging.info(f"Local model not found, downloading from HuggingFace  Hub..")       
         print("Local model not found, downloading from HuggingFace  Hub...")
         model_path = "google/embeddinggemma-300m"
@@ -83,10 +87,36 @@ def get_embedding_model():
 #
 def get_vector_store(extracted_chunks):
     embeddings = get_embedding_model()
+    
     # Creates FAISS vector store from text chunks
     logger.debug(f"Converting chunks to embedding vectors")
     vector_store = FAISS.from_documents(extracted_chunks, embeddings)
+    
     logger.debug(f"Saving vector store index locally under indexes/ folder")
     vector_store.save_local("indexes/sample_index")
+    
     logger.debug(f"Successfully saved the vector store index.")
     return vector_store
+
+
+def build_conversational_chain(vector_index):
+    logger.info("Connecting to Ollama at model=llama3 on http://localhost:11434")
+
+    # Create ChatOllama LLM wrapper
+    llm = ChatOllama(
+            model="llama3", 
+            base_url="http://localhost:11434",
+            temperature=0.0,  # Dont be creative. Just give me the most likely and accurate answer 
+            disable_streaming=True
+        )
+    
+    # Retriever from the vector store
+    retriever = vector_index.as_retriever(search_kargs={"k": 4})
+
+    # Conversation memory (keeps turn history)
+    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+
+    # Build chain
+    chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory, return_source_documents=True)
+
+    return chain
