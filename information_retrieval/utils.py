@@ -62,14 +62,14 @@ def get_embedding_model():
     LOCAL_MODEL_PATH = Path("./models/google/embeddinggemma-300m")
 
     if LOCAL_MODEL_PATH.exists() and any(LOCAL_MODEL_PATH.iterdir()):
-        logging.info(f"Loading Gemma Ebedding from Local Cache...")
+        logger.info(f"Loading Gemma Ebedding from Local Cache...")
         print("Loading Gemma Ebedding from Local Cache...")
         model_path = str(LOCAL_MODEL_PATH)
     else:
         if not HF_TOKEN:
             raise ValueError("HuggingFace Token required to download gated model..")
         
-        logging.info(f"Local model not found, downloading from HuggingFace  Hub..")       
+        logger.info(f"Local model not found, downloading from HuggingFace  Hub..")       
         print("Local model not found, downloading from HuggingFace  Hub...")
         model_path = "google/embeddinggemma-300m"
     
@@ -77,7 +77,7 @@ def get_embedding_model():
         model_name=model_path,
         model_kwargs={"use_auth_token": HF_TOKEN}  #token ignored if local model exists.
     )
-    logging.info(f"Successfully loaded embedding model")
+    logger.info(f"Successfully loaded embedding model")
     return embeddings
 
 
@@ -85,15 +85,21 @@ def get_embedding_model():
 # Fetches embedding model and creates vector store.
 # Uses embeddings to convert extracted text chunks into dense vectors.
 #
-def get_vector_store(extracted_chunks):
+def get_vector_store(extracted_chunks, persist_dir="vector_stores/indexes"):
     embeddings = get_embedding_model()
     
+    # Check if vectors are already processed, just load from the disk.
+    if os.path.exists(persist_dir):
+        logger.info("Local vector store already exists. Loading..")
+        return FAISS.load_local(persist_dir, embeddings, allow_dangerous_deserialization=True)
+    
+    logger.info("Could not find any saved local vector stores. Creating one..")
     # Creates FAISS vector store from text chunks
     logger.debug(f"Converting chunks to embedding vectors")
     vector_store = FAISS.from_documents(extracted_chunks, embeddings)
     
-    logger.debug(f"Saving vector store index locally under indexes/ folder")
-    vector_store.save_local("indexes/sample_index")
+    logger.debug(f"Saving vector store index locally under vector_stores/indexes folder")
+    vector_store.save_local(persist_dir)
     
     logger.debug(f"Successfully saved the vector store index.")
     return vector_store
