@@ -110,13 +110,13 @@ def build_conversational_chain(vector_index):
 
     # Create ChatOllama LLM wrapper
     llm = ChatOllama(
-            model="llama3", 
+            model="qwen2", 
             base_url="http://localhost:11434",
             temperature=0.0,  # Dont be creative. Just give me the most likely and accurate answer 
             disable_streaming=True
         )
     
-    # Retriever from the vector store
+    # Convert vector store as retriever to perfrom search.
     retriever = vector_index.as_retriever(search_kargs={"k": 4})
 
     # Conversation memory (keeps turn history)
