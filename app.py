@@ -22,6 +22,9 @@ def main():
     # ------------------------------------
     st.set_page_config("Information Retrieval App")
     st.header("Information Retrieval Application")
+    st.markdown("Welcome! \n\nThis Information Retreival Applications lets you interact with your documents in a conversational way."
+    "Simply upload one or more PDF files, and then ask questions in natural language."
+    "Behind the scenes, your documents are converted into vector embedding, enabling semantic search and conversational responses based on their content.")
 
     # ------------------------------------
     #  Initialize Session State
@@ -43,7 +46,7 @@ def main():
     # ------------------------------------
     # Adding a side panel on the webpage and let the users upload PDF files.
     with st.sidebar:
-        uploaded_file = st.file_uploader("Upload PDF Files ", accept_multiple_files=True, type=["pdf"])
+        uploaded_file = st.file_uploader("**Upload PDF Files:**", accept_multiple_files=True, type=["pdf"])
         
         if st.button("Submit"):
             with st.spinner("Processing Files..."):
