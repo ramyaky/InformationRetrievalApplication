@@ -5,6 +5,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_community.chat_models import ChatOllama
 from langchain_community.vectorstores import FAISS
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.memory import ConversationBufferMemory
 from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
 from langchain.schema import Document
@@ -14,6 +15,10 @@ import os
 
 
 logger = logging.getLogger("InformationRetrievalApp")
+
+# Load the environment variables
+load_dotenv()
+
 #
 # Iterates each PDF file and extract text from it. 
 # Creates a Document object using both extracted text and some metadata. 
@@ -109,20 +114,28 @@ def build_conversational_chain(vector_index):
     logger.info("Connecting to Ollama at model=llama3 on http://localhost:11434")
 
     # Create ChatOllama LLM wrapper
-    llm = ChatOllama(
-            model="qwen2", 
-            base_url="http://localhost:11434",
-            temperature=0.0,  # Dont be creative. Just give me the most likely and accurate answer 
-            disable_streaming=True
-        )
+    # llm = ChatOllama(
+    #         model="llama3", 
+    #         base_url="http://localhost:11434",
+    #         temperature=0.0,  # Dont be creative. Just give me the most likely and accurate answer 
+    #         disable_streaming=True
+    #     )
+
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.5-pro",
+        temperature=0.2
+    )
     
     # Convert vector store as retriever to perfrom search.
-    retriever = vector_index.as_retriever(search_kargs={"k": 4})
+    retriever = vector_index.as_retriever(search_kwargs={"k": 4})
 
     # Conversation memory (keeps turn history)
-    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    memory = ConversationBufferMemory(memory_key="chat_history", 
+                                      return_messages=True)
 
     # Build chain
-    chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory, return_source_documents=True)
+    chain = ConversationalRetrievalChain.from_llm(llm=llm, 
+                                                  retriever=retriever, 
+                                                  memory=memory)
 
     return chain

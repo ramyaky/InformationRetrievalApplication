@@ -6,7 +6,10 @@ streamlit
 langchain
 langchain-huggingface
 langchain-core
+langchain-community
+langchain_google_genai
 
+# Langchain 
 # Embeddings and models
 sentence-transformers
 huggingface-hub

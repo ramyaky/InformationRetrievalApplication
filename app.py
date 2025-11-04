@@ -64,6 +64,12 @@ def main():
     # ------------------------------------
     user_question = st.chat_input("Ask a Question from the uploaded PDF Files")
 
+    # -----------------------------------------
+    # Render Existing Chat History first
+    # ------------------------------------------
+    for message in st.session_state.chat_history:
+        st.chat_message(message["role"]).markdown(message["content"])
+
     if user_question:
         st.chat_message("user").markdown(user_question)
         st.session_state.chat_history.append({"role": "user", "content": user_question})
@@ -72,12 +78,15 @@ def main():
             st.chat_message("assistant").markdown("⚠️ Please upload and process a PDF first.")
         else:
             try:
+                assistant_placeholder = st.chat_message("assistant")
+                assistant_placeholder.markdown("⏳ Thinking...")
                 response = st.session_state.conversation({"question": user_question})
                 answer = response["answer"]
-                st.chat_message("assistant").markdown(answer)
+                assistant_placeholder.markdown(answer)
+                st.session_state.chat_history.append({"role": "assistant", "content": answer})
             except Exception as e:
-                st.chat_message("assistant").markdown(f"Error: {e}")
+                assistant_placeholder.markdown(f"Error: {e}")
 
-
+    
 if __name__ == "__main__":
     main()
