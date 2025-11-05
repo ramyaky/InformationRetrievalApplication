@@ -55,6 +55,7 @@ def main():
                     extracted_chunks = chunk_documents(extracted_text)
                     st.session_state.vector_store = get_vector_store(extracted_chunks)
                     st.session_state.conversation = build_conversational_chain(st.session_state.vector_store)
+                    st.session_state.chat_history = []
                     st.success("PDF processed Successfully!")
                 except Exception as e:
                     st.error(f"Error processing PDF files: {e}")
@@ -79,13 +80,14 @@ def main():
         else:
             try:
                 assistant_placeholder = st.chat_message("assistant")
-                assistant_placeholder.markdown("⏳ Thinking...")
+                result_placeholder = assistant_placeholder.empty()
+                result_placeholder.markdown("⏳ Analyzing...")
                 response = st.session_state.conversation({"question": user_question})
                 answer = response["answer"]
-                assistant_placeholder.markdown(answer)
+                result_placeholder.markdown(answer)
                 st.session_state.chat_history.append({"role": "assistant", "content": answer})
             except Exception as e:
-                assistant_placeholder.markdown(f"Error: {e}")
+                result_placeholder.markdown(f"Error: {e}")
 
     
 if __name__ == "__main__":

@@ -103,8 +103,11 @@ def get_vector_store(extracted_chunks, persist_dir="vector_stores/indexes"):
     logger.debug(f"Converting chunks to embedding vectors")
     vector_store = FAISS.from_documents(extracted_chunks, embeddings)
     
-    logger.debug(f"Saving vector store index locally under vector_stores/indexes folder")
-    vector_store.save_local(persist_dir)
+    # No need of saving vector embeddings locally, as they will get processed only 
+    #   Once when you upload a file
+    #.  When app restarts
+    # logger.debug(f"Saving vector store index locally under vector_stores/indexes folder")
+    # vector_store.save_local(persist_dir)
     
     logger.debug(f"Successfully saved the vector store index.")
     return vector_store
