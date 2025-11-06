@@ -1,5 +1,8 @@
 # InformationRetrievalApplication
-This is RAG based generative AI application where user can upload any pdf and query llm specific to the document.
+A RAG based PDF question-answering app that uses embeddings and a vector store to retrieve relevant document content and generate grounded responses using LLM (I have used Gemini).
+
+## How it works:
+This application allows users to upload PDF documents and interact with their contents using a conversational chat interface. The PDFs are processed to extract text, which is then converted into vector embeddings using a local HuggingFace embedding model. These embeddings are stored in a FAISS vector store, enabling efficient semantic search and retrieval. When the user asks a question, the relevant document sections are retrieved and passed to a Gemini LLM, which generates an accurate, context-aware response based only on the uploaded documents. This approach is known as Retrieval-Augmented Generation (RAG) and helps prevent hallucination while providing grounded answers.
 
 ## Installation and Setup
 
